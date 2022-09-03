@@ -21,7 +21,7 @@ df_input_test = pd.read_excel( io='input_test.xlsx',
                                header=0,
                                usecols='A:C')
      
-st.sidebar.header("Input Time and Temp")
+st.sidebar.header("Input Time ,Temperature and Humidity")
    
 input_form = st.sidebar.form('input_form')
 time_input = input_form.time_input('Time input')
