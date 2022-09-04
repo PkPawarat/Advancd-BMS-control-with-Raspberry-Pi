@@ -57,7 +57,6 @@ temp_hex = {
         30.0: '\x01\x06\x00\x66\x01\x2C\x69\x98'
       }
 
-
 ## Time temp dictionary
 time_temp = {
         '0:0': 18.0,
@@ -110,7 +109,6 @@ time_temp = {
         '23:30': 18.5
       }
 
-
 ## Command dictionary
 command = {
         'ON': '\x01\x06\x00\x01\x00\x01\x19\xCA',
@@ -124,8 +122,8 @@ command = {
         'COOL ONLY': '\x01\x06\x00\x65\x00\x02\x18\x14',
         'AUTO CHANGEOVER': '\x01\x06\x00\x65\x00\x03\xD9\xD4',
         'FAN ONLY': '\x01\x06\x00\x65\x00\x04\x98\x16',
-        'ROOM TEMP' : '\x01\x03\x03\x53\x00\x01\x74\x5F',
-        'OUTSIDE TEMP' : '\x01\x03\x03\x54\x00\x01\xC5\x9E'
+        'ROOM TEMP' : '\x01\x03\x03\x53\x00\x01\x74\x5F',               #sensoring temp inside
+        'OUTSIDE TEMP' : '\x01\x03\x03\x54\x00\x01\xC5\x9E'             #sensoring temp outside
       }
 
 

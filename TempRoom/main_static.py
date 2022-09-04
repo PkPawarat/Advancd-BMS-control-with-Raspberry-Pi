@@ -105,13 +105,8 @@ ser.Uart_SendHex(temp_hex[set_temp])
 time.sleep(0.2)#Allow time for the message to be sent
 
 
-
-
-
-
-
 try:
-    while(1):
+        while(1):
         #get current time
         now = time.localtime()
         hour = now.tm_hour
