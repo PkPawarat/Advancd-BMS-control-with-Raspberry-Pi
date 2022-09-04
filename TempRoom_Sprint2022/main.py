@@ -8,7 +8,7 @@ import csv
 import RPi.GPIO as GPIO
 from waveshare_2_CH_RS485_HAT import config
 
-
+#test
 TXDEN_1 = 27
 ser = config.config(dev = "/dev/ttySC0")
 
