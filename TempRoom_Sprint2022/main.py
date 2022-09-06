@@ -165,6 +165,7 @@ class Sensor:                                         #an external Sensor (Humid
     IIC_ADDRESS      = 0x38           # default i2c device address
     dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
     dht20.begin()
+    pass
     
 
   def get_temp(self):
