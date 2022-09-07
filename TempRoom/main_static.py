@@ -29,7 +29,7 @@ set_temp = 21.0 #only use increments of 0.5C between 18C and 30C
 
 ## Temp hex code dictionary
 temp_hex = {
-        18.0: '\x01\x06\x00\x66\x00\xB4\x69\xA2',
+        18.0: '\x01\x06\x00\x66\x00\xB4\x69\xA2',             #convert dicimal to hex by 18.0 degree to 180 (dicimal) to 00B4 (hex)
         18.5: '\x01\x06\x00\x66\x00\xB9\xA8\x67',
         19.0: '\x01\x06\x00\x66\x00\xBE\xE9\xA5',
         19.5: '\x01\x06\x00\x66\x00\xC3\x29\x84',
@@ -56,30 +56,34 @@ temp_hex = {
         30.0: '\x01\x06\x00\x66\x01\x2C\x69\x98'
       }
 
-## Command dictionary
-command = {
-        'ON': '\x01\x06\x00\x01\x00\x01\x19\xCA',
-        'OFF': '\x01\x06\x00\x01\x00\x00\xD8\x0A',
-        'LOW': '\x01\x06\x00\x04\x00\x01\x09\xCB',
-        'MEDIUM': '\x01\x06\x00\x04\x00\x02\x49\xCA',
-        'HIGH': '\x01\x06\x00\x04\x00\x03\x88\x0A',
-        'STANDARD': '\x01\x06\x00\x69\x00\x00\x59\xD6',
-        'CONTINUOUS': '\x01\x06\x00\x69\x00\x01\x98\x16',
-        'HEAT ONLY': '\x01\x06\x00\x65\x00\x01\x58\x15',
-        'COOL ONLY': '\x01\x06\x00\x65\x00\x02\x18\x14',
-        'AUTO CHANGEOVER': '\x01\x06\x00\x65\x00\x03\xD9\xD4',
-        'FAN ONLY': '\x01\x06\x00\x65\x00\x04\x98\x16',
-        'ROOM TEMP' : '\x01\x03\x03\x53\x00\x01\x74\x5F',
-        'OUTSIDE TEMP' : '\x01\x03\x03\x54\x00\x01\xC5\x9E'
+## Command dictionary   
+command = {                      #board         Modbut register  Hex           CRC
+        'ON':                   '\x01\x06\x00   \x01            \x00\x01       \x19\xCA',
+        'OFF':                  '\x01\x06\x00   \x01            \x00\x00       \xD8\x0A',
+
+        'LOW':                  '\x01\x06\x00   \x04            \x00\x01       \x09\xCB',
+        'MEDIUM':               '\x01\x06\x00   \x04            \x00\x02       \x49\xCA',
+        'HIGH':                 '\x01\x06\x00   \x04            \x00\x03       \x88\x0A',
+
+        'STANDARD':             '\x01\x06\x00   \x69            \x00\x00       \x59\xD6',
+        'CONTINUOUS':           '\x01\x06\x00   \x69            \x00\x01       \x98\x16',
+
+        'HEAT ONLY':            '\x01\x06\x00   \x65            \x00\x01       \x58\x15',
+        'COOL ONLY':            '\x01\x06\x00   \x65            \x00\x02       \x18\x14',
+        'AUTO CHANGEOVER':      '\x01\x06\x00   \x65            \x00\x03       \xD9\xD4',
+        'FAN ONLY':             '\x01\x06\x00   \x65            \x00\x04       \x98\x16',
+        
+        'ROOM TEMP' :           '\x01\x03\x03\x53       \x00\x01\x74\x5F',
+        'OUTSIDE TEMP' :        '\x01\x03\x03\x54       \x00\x01\xC5\x9E'
       }
 
 
 
 ## AC start up code
-
+                                #GPIO.LOW mean commanding mode,  GPIO.HIGH = receiving data
 #AC STATE: ON, OFF
 GPIO.output(TXDEN_1, GPIO.LOW) 
-ser.Uart_SendHex(command['ON']) 
+ser.Uart_SendHex(command['ON'])
 time.sleep(0.2)#Allow time for the message to be sent
  
 
