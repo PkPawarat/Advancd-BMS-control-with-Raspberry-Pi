@@ -73,14 +73,14 @@ command = {                      #board         Modbut register  Hex           C
         'AUTO CHANGEOVER':      '\x01\x06\x00   \x65            \x00\x03       \xD9\xD4',
         'FAN ONLY':             '\x01\x06\x00   \x65            \x00\x04       \x98\x16',
         
-        'ROOM TEMP' :           '\x01\x03\x03\x53       \x00\x01\x74\x5F',
-        'OUTSIDE TEMP' :        '\x01\x03\x03\x54       \x00\x01\xC5\x9E'
+        'ROOM TEMP' :           '\x01\x03\x03   \x53            \x00\x01       \x74\x5F',
+        'OUTSIDE TEMP' :        '\x01\x03\x03   \x54            \x00\x01       \xC5\x9E'
       }
 
 
 
 ## AC start up code
-                                #GPIO.LOW mean commanding mode,  GPIO.HIGH = receiving data
+                                ####GPIO.LOW mean commanding mode,  GPIO.HIGH = receiving data
 #AC STATE: ON, OFF
 GPIO.output(TXDEN_1, GPIO.LOW) 
 ser.Uart_SendHex(command['ON'])

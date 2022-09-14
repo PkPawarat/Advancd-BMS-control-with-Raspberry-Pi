@@ -6,8 +6,8 @@ import logging
 import binascii
 import time
 import csv
-import RPi.GPIO as GPIO
-
+import RPi.GPIO as GPIO_AC #setup a new improt system cause we going to separate it into 2 system 
+import RPi.GPIO as GPIO_Sensor
 from DFRobot_DHT20 import *
 from waveshare_2_CH_RS485_HAT import config
 sys.path.append("../")
@@ -20,6 +20,10 @@ if os.path.exists(libdir):
 
 TXDEN_1 = 27
 ser = config.config(dev = "/dev/ttySC0")
+
+
+
+
 
 #set temp with hex code dictionary
 ## Temp hex code dictionary
