@@ -1,3 +1,4 @@
+from imp import init_builtin
 from this import d
 import serial
 import os
@@ -6,12 +7,14 @@ import logging
 import binascii
 import time
 import csv
-import RPi.GPIO as GPIO_AC #setup a new improt system cause we going to separate it into 2 system 
-import RPi.GPIO as GPIO_Sensor
+import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO_AC #setup a new improt system cause we going to separate it into 2 system 
+# import RPi.GPIO as GPIO_Sensor
+
 from DFRobot_DHT20 import *
 from waveshare_2_CH_RS485_HAT import config
-sys.path.append("../")
 
+sys.path.append("../")
 
 logging.basicConfig(level=logging.INFO)
 libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib')
@@ -20,9 +23,6 @@ if os.path.exists(libdir):
 
 TXDEN_1 = 27
 ser = config.config(dev = "/dev/ttySC0")
-
-
-
 
 
 #set temp with hex code dictionary
@@ -143,15 +143,21 @@ class message:
     temp_string = "0x" + hex_string[6:10]
     
     if(len(temp_string) == 6):
-      room_temp_test = (int(temp_string, 16))/10.0    
-      #if(room_temp_test < 40.0):                       #try not to check if temp >
-      return room_temp_test
+      temp_num = (int(temp_string, 16))/10.0    
+      # if(temp_num < 40.0):                       #try not to check if temp >
+      return temp_num
 
+  def send_message(self):
+    GPIO.output(TXDEN_1, GPIO.LOW)
+    ser.Uart_SendHex(temp_hex[set_temp])
+    time.sleep(0.2)#Allow time for the message to be sent
 
-class Modbus:                                         #modbus communicate with AC, by sending a command to AC in order to sensor a temp (inside&outside)
+class Modbus:          #modbus communicate with AC, by sending a command to AC in order to sensor a temp (inside&outside)
   
   # def __init__(self):
   #   pass
+  def set_temperature(self):
+        
 
   def get_room_temp(self):              
     message.message_temp(room_temp)
@@ -160,7 +166,7 @@ class Modbus:                                         #modbus communicate with A
     message.message_temp(outside_temp)
 
 
-class Sensor:                                         #an external Sensor (Humidity and Temperature Sensor - DHT20)
+class Sensor:          #an external Sensor (Humidity and Temperature Sensor - DHT20)
   
   def __init__(self):
     GPIO.setmode(GPIO.BOARD)
@@ -185,6 +191,16 @@ class Sensor:                                         #an external Sensor (Humid
       return humid
     except:
 		    return print("Had trouble grabbing the Humidity Sensor (DHT20), trying again...")
+
+
+class humidify:
+  def __init__(self) -> None:
+      pass
+
+
+class flap_motor:
+  def __init__(self) -> None:
+    pass
 
 
 
