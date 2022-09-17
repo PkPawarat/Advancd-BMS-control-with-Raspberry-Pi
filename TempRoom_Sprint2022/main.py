@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from imp import init_builtin
 from this import d
 import serial
@@ -129,92 +130,97 @@ room_temp = 'ROOM TEMP'
 outside_temp = 'OUTSIDE TEMP'
 humid = 'Humid'
 
-class message:
-  def __init__(self, Command):
-    self.Command = Command
 
-  def message_temp(self):
-    GPIO.output(TXDEN_1, GPIO.LOW)                    #set output as LOW before setpu a new command
-    ser.Uart_SendHex(command[self.Command])           #setup a new command
-    time.sleep(0.0025)
-    GPIO.output(TXDEN_1, GPIO.HIGH)                   #Trun on a Command
-    s = ser.Uart_ReceiveHex(7)                        #set 's' as receiveHex
-    hex_string = binascii.hexlify(s)                  #covert hex represent to binary data
+class message:
+
+  def message_receiving_data(send_command):
+    GPIO.output(TXDEN_1, GPIO.LOW)                  #set output as LOW before setpu a new command
+    ser.Uart_SendHex(command[send_command])          #setup a new command
+    time.sleep(0.005)
+    GPIO.output(TXDEN_1, GPIO.HIGH)                 #Trun on a Command
+    s = ser.Uart_ReceiveHex(7)                      #set 's' as receiveHex
+    hex_string = binascii.hexlify(s)                #covert hex represent to binary data
     temp_string = "0x" + hex_string[6:10]
     
     if(len(temp_string) == 6):
       temp_num = (int(temp_string, 16))/10.0    
-      # if(temp_num < 40.0):                       #try not to check if temp >
+      # if(temp_num < 40.0):                        #try not to check if temp >
       return temp_num
 
-  def send_message(self):
+  def send_message(command, time, temp):                    # send message as commanding to Modbus and update both time and temp(in web interface)
     GPIO.output(TXDEN_1, GPIO.LOW)
-    ser.Uart_SendHex(temp_hex[set_temp])
-    time.sleep(0.2)#Allow time for the message to be sent
+    if temp != NULL:
+      command.update({str(time) : str(temp)})
+    ser.Uart_SendHex(command[time])
+    time.sleep(0.005)                              #Allow time for the message to be sent
+
 
 class Modbus:          #modbus communicate with AC, by sending a command to AC in order to sensor a temp (inside&outside)
   
-  # def __init__(self):
-  #   pass
-  def set_temperature(self):
-        
-
+  def set_temperature(set_time, temp):
+    message.send_message(temp_hex, set_time, temp)
+    
   def get_room_temp(self):              
-    message.message_temp(room_temp)
+    message.message_receiving_data(room_temp)
 
   def get_outside_temp(self):
-    message.message_temp(outside_temp)
+    message.message_receiving_data(outside_temp)
 
 
-class Sensor:          #an external Sensor (Humidity and Temperature Sensor - DHT20)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(16, GPIO.OUT)
+IIC_MODE         = 0x01            # default use IIC1
+IIC_ADDRESS      = 0x38           # default i2c device address
+dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
+dht20.begin()
+
+class Sensor:          #an external Sensor (Humidity and Temperature Sensor - DHT20)    
+
+  def check_temp():
+    try:
+      temp = dht20.get_temperature()
+      return temp
+    except:
+      return print("Had trouble grabbing the Temperature Sensor (DHT20), trying again...")
   
-  def __init__(self):
+  def check_humid():
+    try:
+      humid = dht20.get_humidity()
+      return humid
+    except:
+      return print("Had trouble grabbing the Humidity Sensor (DHT20), trying again...")
+
+  def get_temp():
+    Sensor.check_temp()
+
+  def get_humid():
+    Sensor.check_humid()
+
+
+
+class humidify:
+
+  def __init__(self) -> None:
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(16, GPIO.OUT)
     IIC_MODE         = 0x01            # default use IIC1
     IIC_ADDRESS      = 0x38           # default i2c device address
     dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
     dht20.begin()
-    pass
-    
 
-  def get_temp(self):
-    try:
-      temp = dht20.get_temperature()
-      return temp
-    except:
-		    return print("Had trouble grabbing the Temperature Sensor (DHT20), trying again...")
-  
-  def get_humid(self):
-    try:
-      humid = dht20.get_humidity()
-      return humid
-    except:
-		    return print("Had trouble grabbing the Humidity Sensor (DHT20), trying again...")
-
-
-class humidify:
-  def __init__(self) -> None:
-      pass
+  def check_humidify():
+    get_humid = Sensor.get_humid()
+    if get_humid < 50:
+      # output_sate = "On"
+		  GPIO.output(16, True)
+    elif get_humid > 50:
+      # output_sate = "Off"
+		  GPIO.output(16, False)
 
 
 class flap_motor:
-  def __init__(self) -> None:
+  def check():
     pass
-
-
-
-#AC setup 
-
-#AC state:
-
-#FAN SPEED:
-
-#SUPPLY FAN
-
-#MODE:
-
-#SET TEMP
 
 
 
@@ -249,7 +255,9 @@ if __name__ == "__main__":
 
       pass
   
+  
   except KeyboardInterrupt:
       #check if the user pressed control + C
       logging.info("ctrl + c")
       exit()
+  print("Turn off system click: ctrl + c")
