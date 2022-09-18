@@ -15,15 +15,25 @@ import RPi.GPIO as GPIO
 from DFRobot_DHT20 import *
 from waveshare_2_CH_RS485_HAT import config
 
-sys.path.append("../")
 
+
+## setup Modbus communcation hat
 logging.basicConfig(level=logging.INFO)
 libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib')
 if os.path.exists(libdir):
   sys.path.append(libdir)
-
 TXDEN_1 = 27
 ser = config.config(dev = "/dev/ttySC0")
+
+
+#Setup sensor DFRobot_DHT20
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(16, GPIO.OUT)
+IIC_MODE         = 0x01            # default use IIC1
+IIC_ADDRESS      = 0x38           # default i2c device address
+dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
+dht20.begin()
+sys.path.append("../")
 
 
 #set temp with hex code dictionary
@@ -167,13 +177,6 @@ class Modbus:          #modbus communicate with AC, by sending a command to AC i
     message.message_receiving_data(outside_temp)
 
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(16, GPIO.OUT)
-IIC_MODE         = 0x01            # default use IIC1
-IIC_ADDRESS      = 0x38           # default i2c device address
-dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
-dht20.begin()
-
 class Sensor:          #an external Sensor (Humidity and Temperature Sensor - DHT20)    
 
   def check_temp():
@@ -197,33 +200,30 @@ class Sensor:          #an external Sensor (Humidity and Temperature Sensor - DH
     Sensor.check_humid()
 
 
-
-class humidify:
-
-  def __init__(self) -> None:
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(16, GPIO.OUT)
-    IIC_MODE         = 0x01            # default use IIC1
-    IIC_ADDRESS      = 0x38           # default i2c device address
-    dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
-    dht20.begin()
+class Humidify:
 
   def check_humidify():
     get_humid = Sensor.get_humid()
     if get_humid < 50:
-      # output_sate = "On"
-		  GPIO.output(16, True)
-    elif get_humid > 50:
-      # output_sate = "Off"
-		  GPIO.output(16, False)
+		    GPIO.output(16, True)
+        output_sate = "On"
+    else:
+		    GPIO.output(16, False)
+        output_sate = "Off"
 
 
 class flap_motor:
   def check():
+    if ...:
+      pass
+    elif ...:
+      pass
     pass
 
 
+output_sate = "On"
 
+if __name__ == "__main__":
 ##MAIN LOOP 
 
   #Get Temp (inside & outside)
@@ -241,7 +241,8 @@ class flap_motor:
 
   #write data to file (temp, humid)
 
-if __name__ == "__main__":
+
+
   try:
     while(1):
 
@@ -253,10 +254,18 @@ if __name__ == "__main__":
       month = now.tm_mon
       year = now.tm_year
 
+      AC_temp_in = Modbus.get_room_temp()    #Get Temp (inside & outside) from AC
+      AC_temp_out = Modbus.get_outside_temp()
+
+      sensor_temp = Sensor.get_temp()         #Get Temp & Humid from sensor
+      sensor_humid = Sensor.get_humid()
+      
+      Humidify.check_humidify()
       pass
   
+	print("{}/{}/{} - {}:{} | \nAC: Inside Temperature {:.2f} C, Outside Temperature {:.2f} C| \n Sensor: Temperature {:.2f} C, Humidity {:.2f} % RH | Output State {}"
   
-  except KeyboardInterrupt:
+  .format(day, month, year, hour, minute, AC_temp_in, AC_temp_out, sensor_temp, sensor_humid, output_sate))  except KeyboardInterrupt:
       #check if the user pressed control + C
       logging.info("ctrl + c")
       exit()
