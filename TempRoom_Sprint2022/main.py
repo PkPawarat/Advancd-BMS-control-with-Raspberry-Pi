@@ -139,7 +139,7 @@ outside_temp = 'OUTSIDE TEMP'
 set_temp = 21.0
 
 ## AC start up code
-                                ####GPIO.LOW mean commanding mode,  GPIO.HIGH = receiving data
+####GPIO.LOW mean commanding mode,  GPIO.HIGH = receiving data
 #AC STATE: ON, OFF
 GPIO.output(TXDEN_1, GPIO.LOW) 
 ser.Uart_SendHex(command['ON'])
@@ -166,101 +166,89 @@ ser.Uart_SendHex(temp_hex[set_temp])
 time.sleep(0.2)#Allow time for the message to be sent
 
 
-class message:
+# class message:
 
-  def message_receiving_data(send_command):
-    GPIO.output(TXDEN_1, GPIO.LOW)                  #set output as LOW before setpu a new command
-    ser.Uart_SendHex(command[send_command])         #setup a new command
-    time.sleep(0.005)
-    GPIO.output(TXDEN_1, GPIO.HIGH)                 #Trun on a Command
-    s = ser.Uart_ReceiveHex(7)                      #set 's' as receiveHex
-    hex_string = binascii.hexlify(s)                #covert hex represent to binary data
-    temp_string = "0x" + hex_string[6:10]
-    
-    if(len(temp_string) == 6):
-      temp_num = (int(temp_string, 16))/10.0    
-      # if(temp_num < 40.0):                        #try not to check if temp >
-      return temp_num
-
-  def send_messageAC(command, time, temp):            #send message as commanding to Modbus and update both time and temp(in web interface)
-    GPIO.output(TXDEN_1, GPIO.LOW)
-    if temp != NULL:
-      time_temp.update({str(time) : str(temp)})
-    ser.Uart_SendHex(command[time])
-    time.sleep(0.005)                               #Allow time for the message to be sent
-
-#
-## Message class will have 2 function that receiving_data and send_message; 
-# receiving_data is only will receiving a data from AC temperature sensor (inside&outside)
-# send_message will have upto 3 command but It only send a command to AC and setup what 'command' and 'time' set is. 
-
-class Modbus:                                       #modbus communicate with AC, by sending a command to AC in order to sensor a temp (inside&outside)
+def message_receiving_data(send_command):
+  GPIO.output(TXDEN_1, GPIO.LOW)                  #set output as LOW before setpu a new command
+  ser.Uart_SendHex(command[send_command])         #setup a new command
+  time.sleep(0.005)
+  GPIO.output(TXDEN_1, GPIO.HIGH)                 #Trun on a Command
+  s = ser.Uart_ReceiveHex(7)                      #set 's' as receiveHex
+  hex_string = binascii.hexlify(s)                #covert hex represent to binary data
+  temp_string = "0x" + hex_string[6:10]
   
-  def set_temperature(set_time, temp):              #Setting set_time EX: (12:00)
-    message.send_messageAC(temp_hex, set_time, temp)
-    
-  def get_room_temp(self):              
-    return message.message_receiving_data(room_temp)
+  if(len(temp_string) == 6):
+    temp_num = (int(temp_string, 16))/10.0    
+    # if(temp_num < 40.0):                        #try not to check if temp >
+    return temp_num
 
-  def get_outside_temp(self):
-    return message.message_receiving_data(outside_temp)
-#
-# Modbus class will have a 3 function that for 
-# set_temperature it will go to web interface in order to setup a time and temperature manully 
-# get_room_temp & get_outside_temp will return a value that meesage has receive a data
-# #
+def send_messageAC(command, time, temp):            #send message as commanding to Modbus and update both time and temp(in web interface)
+  GPIO.output(TXDEN_1, GPIO.LOW)
+  if temp != NULL:
+    time_temp.update({str(time) : str(temp)})
+  ser.Uart_SendHex(command[time])
+  time.sleep(0.005)                               #Allow time for the message to be sent
 
-class Sensor:          #an external Sensor (Humidity and Temperature Sensor - DHT20)    
 
-  def check_temp():
-    try:
-      temp = dht20.get_temperature()
-      return temp
-    except:
-      print("Had trouble grabbing the Temperature Sensor (DHT20), trying again...")
+# class Modbus:                                       #modbus communicate with AC, by sending a command to AC in order to sensor a temp (inside&outside)
   
-  def check_humid():
-    try:
-      humid = dht20.get_humidity()
-      return humid
-    except:
-      print("Had trouble grabbing the Humidity Sensor (DHT20), trying again...")
+def set_temperature(set_time, temp):              #Setting set_time EX: (12:00), 19.0
+  send_messageAC(temp_hex, set_time, temp)
 
-  def get_temp():
-    return Sensor.check_temp()
+def get_room_temp(self):              
+  return message_receiving_data(room_temp)
 
-  def get_humid():
-    return Sensor.check_humid()
-  
-#Sensor Class 
-# the funciton just checking a both temp and humidify, and return both into each funcitons#
+def get_outside_temp(self):
+  return message_receiving_data(outside_temp)
+
+# class Sensor:          #an external Sensor (Humidity and Temperature Sensor - DHT20)    
+
+def check_temp():
+  try:
+    temp = dht20.get_temperature()
+    return temp
+  except:
+    print("Had trouble grabbing the Temperature Sensor (DHT20), trying again...")
+
+def check_humid():
+  try:
+    humid = dht20.get_humidity()
+    return humid
+  except:
+    print("Had trouble grabbing the Humidity Sensor (DHT20), trying again...")
+
+def get_temp():
+  return check_temp()
+
+def get_humid():
+  return check_humid()
+
 
 output_sate = "On"
 
-class Humidify:
+# class Humidify:
 
-  def check_humidify():
-    get_humid = Sensor.get_humid()
-    if get_humid < 50:
-      GPIO.output(16, True)
-      output_sate = "On"
-    else:
-      GPIO.output(16, False)
-      output_sate = "Off"
+def check_humidify():
+  get_humid = get_humid()
+  if get_humid < 50:
+    GPIO.output(16, True)
+    output_sate = "On"
+  else:
+    GPIO.output(16, False)
+    output_sate = "Off"
 
 # Humidify Class Not yet complete 
 # #
 
-class flap_motor:
-  def check():
-    if ...:
-      pass
-    elif ...:
-      pass
-    pass
+# class flap_motor:
+#   def check():
+#     if ...:
+#       pass
+#     elif ...:
+#       pass
+#     pass
 
 
-output_sate = "On"
 
 if __name__ == "__main__":
 ##MAIN LOOP 

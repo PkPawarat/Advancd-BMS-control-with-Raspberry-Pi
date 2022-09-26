@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-import serial
+# import serial
 import os
 import sys
 import logging

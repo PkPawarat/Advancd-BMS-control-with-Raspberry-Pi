@@ -39,40 +39,40 @@ while True:
 		GPIO.output(16,False)
 	
 	#get current time
-        now = time.localtime()
-        hour = now.tm_hour
-        minute = now.tm_min
-        day = now.tm_mday
-        month = now.tm_mon
-        year = now.tm_year
+	now = time.localtime()
+	hour = now.tm_hour
+	minute = now.tm_min
+	day = now.tm_mday
+	month = now.tm_mon
+	year = now.tm_year
 	
 	
 	
 	
 	
 	# Check if file exists and wrtite data with/without header
-        if os.path.isfile(filename):
-                #log data without header
-                with open(filename, 'a') as log:
-		    writer = csv.writer(log)
-		    # record data to csv file
-		    data = [str(day)+"/"+str(month)+"/"+str(year), str(hour)+":"+ str(minute), "{:.2f}".format(temp), "{:.2f}".format(humid)]
-		    writer.writerow(data)
-		    
-		    # close the log file
-		    log.close()
-        else:
-                #log data with header
-                with open(filename, 'a') as log:
-		    writer = csv.writer(log)
-		    # record data to csv file
-		    header = ['Date', 'Time', 'Temp', 'Humidity']
-		    writer.writerow(header)
-		    data = [str(day)+"/"+str(month)+"/"+str(year), str(hour)+":"+ str(minute), "{:.2f}".format(temp), "{:.2f}".format(humid)]
-		    writer.writerow(data)
-		    
-		    # close the log file
-		    log.close()
+	if os.path.isfile(filename):
+			#log data without header
+		with open(filename, 'a') as log:
+			writer = csv.writer(log)
+			# record data to csv file
+			data = [str(day)+"/"+str(month)+"/"+str(year), str(hour)+":"+ str(minute), "{:.2f}".format(temp), "{:.2f}".format(humid)]
+			writer.writerow(data)
+			
+			# close the log file
+			log.close()
+	else:
+			#log data with header
+		with open(filename, 'a') as log:
+			writer = csv.writer(log)
+			# record data to csv file
+			header = ['Date', 'Time', 'Temp', 'Humidity']
+			writer.writerow(header)
+			data = [str(day)+"/"+str(month)+"/"+str(year), str(hour)+":"+ str(minute), "{:.2f}".format(temp), "{:.2f}".format(humid)]
+			writer.writerow(data)
+			
+			# close the log file
+			log.close()
 
 	
 	print("{}/{}/{} - {}:{} | Temperature {:.2f} C | Humidity {:.2f} % RH | Output State {}".format(day, month, year, hour, minute, temp, humid, output_sate))
