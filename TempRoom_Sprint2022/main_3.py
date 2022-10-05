@@ -224,15 +224,16 @@ try:
         day = now.tm_mday
         month = now.tm_mon
         year = now.tm_year
-
-        room_temp_AC = get_AC_room_temp()
+        #require AC to turn on
+        room_temp_AC = get_AC_room_temp()               
         outside_temp_AC = get_AC_outside_temp()
 
         sensor_temp = sensor_get_temp()
         sensor_humid = sensor_get_humid()
 
-        print(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid)
-
+        #print(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid)
+        print("AC_Room_Temp {}, AC_Outside_Temp {},   Temperature {:.2f} C | Humidity {:.2f} % RH ".format(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid))
+	
 
         time.sleep(1)
 
