@@ -18,7 +18,7 @@ if os.path.exists(libdir):
 TXDEN_1 = 27
 ser = config.config(dev = "/dev/ttySC0")
 
-filename = "temp_log_cyclic.csv"
+filename = "main_3.csv"
 
 set_temp = 21.0
 
@@ -67,53 +67,53 @@ temp_hex = {
 
 ## Time temp dictionary
 time_temp = {
-        '0:0': 18.0,
-        '0:30': 18.0,
-        '1:0': 18.0,
-        '1:30': 18.0,
-        '2:0': 18.0,
-        '2:30': 18.0,
-        '3:0': 18.0,
-        '3:30': 18.5,
-        '4:0': 19.0,
-        '4:30': 20.0,
-        '5:0': 21.0,
-        '5:30': 22.0,
-        '6:0': 23.0,
-        '6:30': 24.0,
-        '7:0': 25.0,
-        '7:30': 26.0,
-        '8:0': 27.0,
-        '8:30': 27.5,
-        '9:0': 28.0,
-        '9:30': 28.5,
-        '10:0': 29.0,
+        '0:0'  : 18.0,
+        '0:30' : 18.0,
+        '1:0'  : 18.0,
+        '1:30' : 18.0,
+        '2:0'  : 18.0,
+        '2:30' : 18.0,
+        '3:0'  : 18.0,
+        '3:30' : 18.5,
+        '4:0'  : 19.0,
+        '4:30' : 20.0,
+        '5:0'  : 21.0,
+        '5:30' : 22.0,
+        '6:0'  : 23.0,
+        '6:30' : 24.0,
+        '7:0'  : 25.0,
+        '7:30' : 26.0,
+        '8:0'  : 27.0,
+        '8:30' : 27.5,
+        '9:0'  : 28.0,
+        '9:30' : 28.5,
+        '10:0' : 29.0,
         '10:30': 29.5,
-        '11:0': 30.0,
+        '11:0' : 30.0,
         '11:30': 30.0,
-        '12:0': 30.0,
+        '12:0' : 30.0,
         '12:30': 30.0,
-        '13:0': 30.0,
+        '13:0' : 30.0,
         '13:30': 30.0,
-        '14:0': 30.0,
+        '14:0' : 30.0,
         '14:30': 30.0,
-        '15:0': 30.0,
+        '15:0' : 30.0,
         '15:30': 30.0,
-        '16:0': 30.0,
+        '16:0' : 30.0,
         '16:30': 29.5,
-        '17:0': 29.0,
+        '17:0' : 29.0,
         '17:30': 28.5,
-        '18:0': 28.0,
+        '18:0' : 28.0,
         '18:30': 27.5,
-        '19:0': 27.0,
+        '19:0' : 27.0,
         '19:30': 26.0,
-        '20:0': 25.0,
+        '20:0' : 25.0,
         '20:30': 24.0,
-        '21:0': 23.0,
+        '21:0' : 23.0,
         '21:30': 22.0,
-        '22:0': 21.0,
+        '22:0' : 21.0,
         '22:30': 20.0,
-        '23:0': 19.0,
+        '23:0' : 19.0,
         '23:30': 18.5
       }
 
@@ -134,18 +134,14 @@ command = {
         'OUTSIDE TEMP' : '\x01\x03\x03\x54\x00\x01\xC5\x9E'             #sensoring temp outside
       }
 
-
-
 def set_AC(string):
     GPIO.output(TXDEN_1, GPIO.LOW) 
-    ser.Uart_SendHex(command[string])
+    ser.Uart_SendHex(command[str(string)])
     time.sleep(0.2)
-
 def set_AC_temp(string):
     GPIO.output(TXDEN_1, GPIO.LOW) 
-    ser.Uart_SendHex(temp_hex[string])
+    ser.Uart_SendHex(temp_hex[str(string)])
     time.sleep(0.2)
-
 def get_AC_room_temp():
     # Get room temp
     GPIO.output(TXDEN_1, GPIO.LOW) 
@@ -160,7 +156,6 @@ def get_AC_room_temp():
         if(room_temp_test < 40.0):
             room_temp = room_temp_test
             return room_temp
-                        
 def get_AC_outside_temp():
     # Get outside temp
     GPIO.output(TXDEN_1, GPIO.LOW) 
@@ -175,31 +170,19 @@ def get_AC_outside_temp():
         if(outside_temp_test < 40.0):
             outside_temp = outside_temp_test
             return outside_temp
-           
-# def get_infor_AC(string):
-#     set_AC(string)
-#     GPIO.output(TXDEN_1, GPIO.HIGH) #set to receive mode
-#     s = ser.Uart_ReceiveHex(7)
-#     hex_string = binascii.hexlify(s)
-#     temp_string = "0x" + hex_string[6:10]
-#     if(len(temp_string) == 6):
-#         room_temp_test = (int(temp_string, 16))/10.0
-#         if(room_temp_test < 40.0):
-#             return room_temp_test
 
 def sensor_get_temp():
     return dht20.get_temperature()
 def sensor_get_humid():
     return dht20.get_humidity()
 
-def sensor(state):
-
+def sensor(state):  #return the stage of the sensor.     
     if state < 50:
-        output_sate = "On"
         GPIO.output(16,True)
+        return "On"
     elif state > 50:
-        output_sate = "Off"
         GPIO.output(16,False)
+        return "Off"
 
 
 #AC STATE: ON, OFF
@@ -224,20 +207,63 @@ try:
         day = now.tm_mday
         month = now.tm_mon
         year = now.tm_year
+
         #require AC to turn on
         room_temp_AC = get_AC_room_temp()               
         outside_temp_AC = get_AC_outside_temp()
 
-        sensor_temp = sensor_get_temp()
-        sensor_humid = sensor_get_humid()
+        # sensor_temp = sensor_get_temp()
+        # sensor_humid = sensor_get_humid()
+        
 
-        #print(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid)
-        print("AC_Room_Temp {}, AC_Outside_Temp {},   Temperature {:.2f} C | Humidity {:.2f} % RH ".format(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid))
+        # print("AC_Room_Temp {}, AC_Outside_Temp {}, Temperature {:.2f} C | Humidity {:.2f} % RH ".format(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid))
 	
 
-        time.sleep(1)
+        second = 0 
+        sum_temp = 0
+        sum_humid = 0
+
+        for second in range(60):
+            sensor_temp = sensor_get_temp()
+            sensor_humid = sensor_get_humid()
+            output_sate = sensor(int(sensor_get_humid()))
+
+            if sensor_temp <= 30:
+                set_AC('ON')
+            elif sensor_temp > 30:
+                set_AC('OFF')
+
+            if sensor_humid < 50:
+                pass # wait for adjusting the fan speed
+
+            sum_temp += sensor_temp
+            sum_humid += sensor_humid
+            if second == 59:
+                sum_temp = sum_temp/ (second+1)
+                sum_humid = sum_humid/ (second+1)
+                set_temp = time_temp[str(hour) + ":" + str(minute)]
+            time.sleep(1)
+
+        set_AC_temp(set_temp)
+
+
+        #log data
+        with open(filename, 'a') as log:
+            writer = csv.writer(log)
+            # record data to csv file
+            header = ['Date', 'Time', 'Room temp', 'Set temp', 'Outside temp', 'Sensor Temp', 'Sensor humid']
+            writer.writerow(header)
+            data = [str(day)+"/"+str(month)+"/"+str(year), str(hour)+":"+str(minute), room_temp, set_temp, outside_temp, sum_temp, sum_humid]
+            writer.writerow(data)
+            
+            # close the log file
+            log.close()
+
+
+        print("AC_Room_Temp {}, AC_Outside_Temp {}, Temperature {:.2f} C | Humidity {:.2f} % RH, Stage of Humidify: {} ".format(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid, output_sate))
 
 except KeyboardInterrupt:
     #check if the user pressed control + C
     logging.info("ctrl + c")
-    exit()        
+    set_AC('OFF')
+    exit()
