@@ -5,6 +5,7 @@ import logging
 import binascii
 import time
 import csv
+import keyboard
 import RPi.GPIO as GPIO
 from waveshare_2_CH_RS485_HAT import config
 from DFRobot_DHT20 import *
@@ -19,16 +20,27 @@ TXDEN_1 = 27
 ser = config.config(dev = "/dev/ttySC0")
 
 filename = "main_3.csv"
-
 set_temp = 21.0
 
-# GPIO.setmode(GPIO.BOARD)
-GPIO.setup(16, GPIO.OUT)            # set pin for sensor at pin 16 GPIO
-IIC_MODE         = 0x01             # default use IIC1
-IIC_ADDRESS      = 0x38             # default i2c device address
 
+# GPIO.setmode(GPIO.BOARD)
+relay_pin = 16
+GPIO.setup(relay_pin, GPIO.OUT)                # set pin for sensor at pin 16 GPIO
+IIC_MODE         = 0x01                 # default use IIC1
+IIC_ADDRESS      = 0x38                 # default i2c device address
+# Setup sensor function
 dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
 dht20.begin()
+
+# Setup Fan & humidify
+FAN_PIN = 32                            # Change pin to whatever is needed
+GPIO.setup(FAN_PIN, GPIO.OUT)
+fan = GPIO.PWM(FAN_PIN,100)             # Set GPIO14 as a PWM output, with 100Hz frequency (we need to make it match the fans specified PWM frequency)
+fan.start(50)                           # Generate a PWM signal with a 50% duty cycle (fan on), start on so that it increases humidity of room and then turns it off or slows down
+
+HUMIDIFIER_PIN = 22                     # Change to relevant pin
+GPIO.setup(HUMIDIFIER_PIN, GPIO.OUT)    # Set up pin for humidifier at 22 
+# GPIO.output(HUMIDIFIER_PIN, GPIO.LOW)   # Turn humidifer on and leave on for duration of code
 
 target_humid = 50
 output_sate = "On"
@@ -138,10 +150,12 @@ def set_AC(string):
     GPIO.output(TXDEN_1, GPIO.LOW) 
     ser.Uart_SendHex(command[str(string)])
     time.sleep(0.2)
+
 def set_AC_temp(string):
     GPIO.output(TXDEN_1, GPIO.LOW) 
     ser.Uart_SendHex(temp_hex[str(string)])
     time.sleep(0.2)
+
 def get_AC_room_temp():
     # Get room temp
     GPIO.output(TXDEN_1, GPIO.LOW) 
@@ -156,6 +170,7 @@ def get_AC_room_temp():
         if(room_temp_test < 40.0):
             room_temp = room_temp_test
             return room_temp
+
 def get_AC_outside_temp():
     # Get outside temp
     GPIO.output(TXDEN_1, GPIO.LOW) 
@@ -173,6 +188,7 @@ def get_AC_outside_temp():
 
 def sensor_get_temp():
     return dht20.get_temperature()
+
 def sensor_get_humid():
     return dht20.get_humidity()
 
@@ -184,16 +200,29 @@ def sensor(state):  #return the stage of the sensor.
         GPIO.output(16,False)
         return "Off"
 
+def switch():
+    switc = input("Want to setup?: \nset_AC \nset_AC_temp")
+    
+    if switc == "set_AC":
+        print("AC STATE: ON, OFF\nFAN SPEED: LOW, MEDIUM, HIGH\nSUPPLY FAN: STANDARD, CONTINUOUS\nMODE: HEAT ONLY, COOL ONLY, AUTO CHANGEOVER, FAN ONLY\nSET TEMP to set_temp")
+        set_AC(str(input()))
+    elif switc == "set_AC_temp":
+        set_AC_temp(int(input()))
+        print("You can become a Data Scientist")
+    if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+            print('You Pressed A Key!')
 
+            
 #AC STATE: ON, OFF
-set_AC('ON')
 #FAN SPEED: LOW, MEDIUM, HIGH
-set_AC('MEDIUM')
 #SUPPLY FAN: STANDARD, CONTINUOUS
-set_AC('CONTINUOUS')
 #MODE: HEAT ONLY, COOL ONLY, AUTO CHANGEOVER, FAN ONLY
-set_AC('AUTO CHANGEOVER')
 #SET TEMP to set_temp
+
+set_AC('ON')
+set_AC('MEDIUM')
+set_AC('CONTINUOUS')
+set_AC('AUTO CHANGEOVER')
 set_AC_temp(set_temp)
 
 
@@ -207,7 +236,8 @@ try:
         day = now.tm_mday
         month = now.tm_mon
         year = now.tm_year
-
+        # second = now.tm_sec
+        
         #require AC to turn on
         room_temp_AC = get_AC_room_temp()               
         outside_temp_AC = get_AC_outside_temp()
@@ -215,15 +245,17 @@ try:
         # sensor_temp = sensor_get_temp()
         # sensor_humid = sensor_get_humid()
         
+        GPIO.output(HUMIDIFIER_PIN, True)           # Turn on HUMIDIFIER
 
         # print("AC_Room_Temp {}, AC_Outside_Temp {}, Temperature {:.2f} C | Humidity {:.2f} % RH ".format(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid))
-	
+
 
         second = 0 
         sum_temp = 0
         sum_humid = 0
-
+        
         for second in range(60):
+            
             sensor_temp = sensor_get_temp()
             sensor_humid = sensor_get_humid()
             output_sate = sensor(int(sensor_get_humid()))
@@ -233,15 +265,19 @@ try:
             elif sensor_temp > 30:
                 set_AC('OFF')
 
-            if sensor_humid < 50:
-                pass # wait for adjusting the fan speed
+            if sensor_humid < 40:
+                fan.start(100)
+            elif sensor_humid > 60:
+                fan.start(0)
 
             sum_temp += sensor_temp
             sum_humid += sensor_humid
-            if second == 59:
-                sum_temp = sum_temp/ (second+1)
-                sum_humid = sum_humid/ (second+1)
+            
+            if second == 59:        # for every minute return sensor Temp & humidify, and setting set_time from Ditionary time_temp
+                sum_temp = sum_temp / (second+1)
+                sum_humid = sum_humid / (second+1)
                 set_temp = time_temp[str(hour) + ":" + str(minute)]
+
             time.sleep(1)
 
         set_AC_temp(set_temp)
@@ -253,9 +289,8 @@ try:
             # record data to csv file
             header = ['Date', 'Time', 'Room temp', 'Set temp', 'Outside temp', 'Sensor Temp', 'Sensor humid']
             writer.writerow(header)
-            data = [str(day)+"/"+str(month)+"/"+str(year), str(hour)+":"+str(minute), room_temp, set_temp, outside_temp, sum_temp, sum_humid]
+            data = [str(day)+"/"+str(month)+"/"+str(year), str(hour)+":"+str(minute), +" "+ room_temp_AC, +" "+ set_temp, +" "+ outside_temp_AC, +" "+ sum_temp, +" "+ sum_humid]
             writer.writerow(data)
-            
             # close the log file
             log.close()
 
@@ -266,4 +301,5 @@ except KeyboardInterrupt:
     #check if the user pressed control + C
     logging.info("ctrl + c")
     set_AC('OFF')
+    GPIO.output(HUMIDIFIER_PIN, False)
     exit()
