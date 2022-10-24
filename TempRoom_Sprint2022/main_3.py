@@ -26,25 +26,45 @@ set_temp = 21.0
 # GPIO.setmode(GPIO.BOARD)
 relay_pin = 16
 GPIO.setup(relay_pin, GPIO.OUT)                # set pin for sensor at pin 16 GPIO
+
+# Setup sensor function
 IIC_MODE         = 0x01                 # default use IIC1
 IIC_ADDRESS      = 0x38                 # default i2c device address
-# Setup sensor function
 dht20 = DFRobot_DHT20(IIC_MODE ,IIC_ADDRESS)
 dht20.begin()
 
-# Setup Fan & humidify
+# Setup Fan pin by usign driver
 FAN_PIN = 32                            # Change pin to whatever is needed
 GPIO.setup(FAN_PIN, GPIO.OUT)
 fan = GPIO.PWM(FAN_PIN,100)             # Set GPIO14 as a PWM output, with 100Hz frequency (we need to make it match the fans specified PWM frequency)
 fan.start(50)                           # Generate a PWM signal with a 50% duty cycle (fan on), start on so that it increases humidity of room and then turns it off or slows down
 
+# Setup relay pin to control humidify
 HUMIDIFIER_PIN = 22                     # Change to relevant pin
 GPIO.setup(HUMIDIFIER_PIN, GPIO.OUT)    # Set up pin for humidifier at 22 
-# GPIO.output(HUMIDIFIER_PIN, GPIO.LOW)   # Turn humidifer on and leave on for duration of code
+
+
+# Setup K-type thermocouple 
+from max6675 import MAX6675
+so = 15
+sck = 13
+cs = 14
+GPIO.setup(so, GPIO.IN)
+GPIO.setup(sck, GPIO.OUT)
+GPIO.setup(cs, GPIO.OUT)
+max = MAX6675(sck, cs , so)
+
+#call this setup by ***** data= max.read() *****
+
+# from machine import Pin
+# so = Pin(15, Pin.IN)
+# sck = Pin(13, Pin.OUT)
+# cs = Pin(14, Pin.OUT)
+# max = MAX6675(sck, cs , so)
+
 
 target_humid = 50
 output_sate = "On"
-
 outside_temp = 21.0
 room_temp = 21.0
 
@@ -201,8 +221,7 @@ def sensor(state):  #return the stage of the sensor.
         return "Off"
 
 def switch():
-    switc = input("Want to setup?: \nset_AC \nset_AC_temp")
-    
+    switc = input("Want to setup?: \nset_AC \nset_AC_temp")   
     if switc == "set_AC":
         print("AC STATE: ON, OFF\nFAN SPEED: LOW, MEDIUM, HIGH\nSUPPLY FAN: STANDARD, CONTINUOUS\nMODE: HEAT ONLY, COOL ONLY, AUTO CHANGEOVER, FAN ONLY\nSET TEMP to set_temp")
         set_AC(str(input()))
@@ -218,7 +237,6 @@ def switch():
 #SUPPLY FAN: STANDARD, CONTINUOUS
 #MODE: HEAT ONLY, COOL ONLY, AUTO CHANGEOVER, FAN ONLY
 #SET TEMP to set_temp
-
 set_AC('ON')
 set_AC('MEDIUM')
 set_AC('CONTINUOUS')
@@ -245,7 +263,7 @@ try:
         # sensor_temp = sensor_get_temp()
         # sensor_humid = sensor_get_humid()
         
-        GPIO.output(HUMIDIFIER_PIN, True)           # Turn on HUMIDIFIER
+        # GPIO.output(HUMIDIFIER_PIN, True)           # Turn on HUMIDIFIER
 
         # print("AC_Room_Temp {}, AC_Outside_Temp {}, Temperature {:.2f} C | Humidity {:.2f} % RH ".format(room_temp_AC, outside_temp_AC, sensor_temp, sensor_humid))
 
@@ -260,6 +278,8 @@ try:
             sensor_humid = sensor_get_humid()
             output_sate = sensor(int(sensor_get_humid()))
 
+            water_temp = max.read()
+
             if sensor_temp <= 30:
                 set_AC('ON')
             elif sensor_temp > 30:
@@ -270,9 +290,16 @@ try:
             elif sensor_humid > 60:
                 fan.start(0)
 
+            if water_temp <= 40:
+                GPIO.output(HUMIDIFIER_PIN, True)
+                # return "On"
+            elif water_temp > 40:
+                GPIO.output(HUMIDIFIER_PIN, False)
+                # return "Off"
+
+
             sum_temp += sensor_temp
             sum_humid += sensor_humid
-            
             if second == 59:        # for every minute return sensor Temp & humidify, and setting set_time from Ditionary time_temp
                 sum_temp = sum_temp / (second+1)
                 sum_humid = sum_humid / (second+1)
