@@ -23,9 +23,9 @@ filename = "main_3.csv"
 set_temp = 21.0
 
 
-# GPIO.setmode(GPIO.BOARD)
-relay_pin = 16
-GPIO.setup(relay_pin, GPIO.OUT)                # set pin for sensor at pin 16 GPIO
+# # GPIO.setmode(GPIO.BOARD)
+# relay_pin = 16
+# GPIO.setup(relay_pin, GPIO.OUT)                # set pin for sensor at pin 16 GPIO
 
 # Setup sensor function
 IIC_MODE         = 0x01                 # default use IIC1
