@@ -5,7 +5,6 @@ import logging
 import binascii
 import time
 import csv
-import keyboard
 import RPi.GPIO as GPIO
 from waveshare_2_CH_RS485_HAT import config
 from DFRobot_DHT20 import *
@@ -23,3 +22,4 @@ max6675.set_pin(cs, sck, so, 1)
 # class k_type_temp(object):
 def read_temp():
     return max6675.read_temp(cs)
+

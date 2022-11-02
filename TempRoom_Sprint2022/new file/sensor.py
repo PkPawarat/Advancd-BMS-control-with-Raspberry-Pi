@@ -5,7 +5,6 @@ import logging
 import binascii
 import time
 import csv
-import keyboard
 import RPi.GPIO as GPIO
 from waveshare_2_CH_RS485_HAT import config
 from DFRobot_DHT20 import *
