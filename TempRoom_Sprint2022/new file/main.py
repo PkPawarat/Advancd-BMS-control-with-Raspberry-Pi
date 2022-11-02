@@ -5,7 +5,6 @@ import logging
 import binascii
 import time
 import csv
-import keyboard
 import RPi.GPIO as GPIO
 from waveshare_2_CH_RS485_HAT import config
 from DFRobot_DHT20 import *
@@ -51,15 +50,7 @@ try:
 
             driver.fan()
 
-            if water_temp <= 40:
-                driver.relay_on()
-                output_sate = "ON"
-                # GPIO.output(HUMIDIFIER_PIN, True)
-                # # return "On"
-            elif water_temp > 40:
-                driver.relay_off()
-                output_sate = "OFF"
-                # return "Off"
+            driver.relay()
 
 
             sum_temp += sensor_temp

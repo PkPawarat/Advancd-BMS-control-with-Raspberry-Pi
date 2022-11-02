@@ -5,10 +5,8 @@ import logging
 import binascii
 import time
 import csv
-import keyboard
 import RPi.GPIO as GPIO
 from waveshare_2_CH_RS485_HAT import config
-from DFRobot_DHT20 import *
 import sensor
 
 # setup Modbus communcation hat
@@ -104,36 +102,37 @@ time_temp = {
 
 ## Command dictionary   
 command = {
-        'ON':               b'\x01\x06\x00\x01\x00\x01\x19\xCA',	#work
-        'OFF':              b'\x01\x06\x00\x01\x00\x00\xD8\x0A',	#work
-        'LOW':              b'\x01\x06\x00\x04\x00\x01\x09\xCB',
-        'MEDIUM':           b'\x01\x06\x00\x04\x00\x02\x49\xCA',
-        'HIGH':             b'\x01\x06\x00\x04\x00\x03\x88\x0A',
-        'STANDARD':         b'\x01\x06\x00\x69\x00\x00\x59\xD6',
-        'CONTINUOUS':       b'\x01\x06\x00\x69\x00\x01\x98\x16',
-        'HEAT ONLY':        b'\x01\x06\x00\x65\x00\x01\x58\x15',
-        'COOL ONLY':        b'\x01\x06\x00\x65\x00\x02\x18\x14',
-        'AUTO CHANGEOVER':  b'\x01\x06\x00\x65\x00\x03\xD9\xD4',
-        'FAN ONLY':         b'\x01\x06\x00\x65\x00\x04\x98\x16',
-        'ROOM TEMP' :       b'\x01\x03\x03\x53\x00\x01\x74\x5F',
-        'OUTSIDE TEMP' :    b'\x01\x03\x03\x54\x00\x01\xC5\x9E'
+        'ON': b'\x01\x06\x00\x01\x00\x01\x19\xCA',	#work
+        'OFF': b'\x01\x06\x00\x01\x00\x00\xD8\x0A',	#work
+        'LOW': b'\x01\x06\x00\x04\x00\x01\x09\xCB',
+        'MEDIUM': b'\x01\x06\x00\x04\x00\x02\x49\xCA',
+        'HIGH': b'\x01\x06\x00\x04\x00\x03\x88\x0A',
+        'STANDARD': b'\x01\x06\x00\x69\x00\x00\x59\xD6',
+        'CONTINUOUS': b'\x01\x06\x00\x69\x00\x01\x98\x16',
+        'HEAT ONLY': b'\x01\x06\x00\x65\x00\x01\x58\x15',
+        'COOL ONLY': b'\x01\x06\x00\x65\x00\x02\x18\x14',
+        'AUTO CHANGEOVER': b'\x01\x06\x00\x65\x00\x03\xD9\xD4',
+        'FAN ONLY': b'\x01\x06\x00\x65\x00\x04\x98\x16',
+        'ROOM TEMP' : b'\x01\x03\x03\x53\x00\x01\x74\x5F',
+        'OUTSIDE TEMP' : b'\x01\x03\x03\x54\x00\x01\xC5\x9E'
       }
 
 def set_AC(string):
     GPIO.output(TXDEN_1, GPIO.LOW) 
     ser.Uart_SendHex(command[str(string)])
-    time.sleep(0.2)
+    time.sleep(0.1)
 
 def set_AC_temp(string):
     GPIO.output(TXDEN_1, GPIO.LOW) 
     ser.Uart_SendHex(temp_hex[str(string)])
-    time.sleep(0.2)
+    time.sleep(0.1)
 
 def get_AC_room_temp():
     # Get room temp
     GPIO.output(TXDEN_1, GPIO.LOW) 
+    time.sleep(0.1)
     ser.Uart_SendHex(command['ROOM TEMP'])
-    time.sleep(0.0025)#Waiting to send
+    time.sleep(0.1)#Waiting to send
     GPIO.output(TXDEN_1, GPIO.HIGH) #set to receive mode
     s = ser.Uart_ReceiveHex(7) 
     hex_string = binascii.hexlify(s)
@@ -147,7 +146,7 @@ def get_AC_outside_temp():
     # Get outside temp
     GPIO.output(TXDEN_1, GPIO.LOW) 
     ser.Uart_SendHex(command['OUTSIDE TEMP'])
-    time.sleep(0.0025)#Waiting to send
+    time.sleep(0.1)#Waiting to send
     GPIO.output(TXDEN_1, GPIO.HIGH) #set to receive mode
     s = ser.Uart_ReceiveHex(7) 
     hex_string = binascii.hexlify(s)
@@ -157,8 +156,29 @@ def get_AC_outside_temp():
         if(outside_temp_test < 40.0):
             return outside_temp_test
 
-def check_temp(check_temp = sensor.sensor_get_temp()):
+def get_AC(check):
+    # Get outside temp
+    GPIO.output(TXDEN_1, GPIO.LOW) 
+    ser.Uart_SendHex(command[str(check)])
+    time.sleep(0.1)#Waiting to send
+    GPIO.output(TXDEN_1, GPIO.HIGH) #set to receive mode
+    s = ser.Uart_ReceiveHex(7) 
+    hex = binascii.hexlify(s)
+    temp_string = hex[6:10]
+    if(len(temp_string) == 4):
+        temp_test = (int(temp_string, 16))/10.0
+        return temp_test
+
+def check_temp(check_temp = int(sensor.sensor_get_temp())):
     if int(check_temp) <= 30:
         set_AC('ON')
     elif int(check_temp) > 30:
         set_AC('OFF')
+
+if __name__ == "__main__":
+        set_AC('ON')
+        set_AC('LOW')
+        set_AC('HEAT ONLY')
+        while(1):
+            print("Temp_room: {} C, Temp_outroom: {} C".format(get_AC('ROOM TEMP'), get_AC('OUTSIDE TEMP')))
+GPIO.cleanup()
