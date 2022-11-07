@@ -1,13 +1,11 @@
-import serial
-import os
-import sys
-import logging
-import binascii
 import time
+<<<<<<< HEAD
 import csv
 import RPi.GPIO as GPIO
 from waveshare_2_CH_RS485_HAT import config
 from DFRobot_DHT20 import *
+=======
+>>>>>>> cd7dc2d3c452b3443cec633b91c60196dafe97d7
 
 import max6675
 
@@ -23,3 +21,11 @@ max6675.set_pin(cs, sck, so, 1)
 def read_temp():
     return max6675.read_temp(cs)
 
+<<<<<<< HEAD
+=======
+if __name__ == "__main__":
+       while(1):
+              print(read_temp())
+              time.sleep(1)
+            #   pass
+>>>>>>> cd7dc2d3c452b3443cec633b91c60196dafe97d7

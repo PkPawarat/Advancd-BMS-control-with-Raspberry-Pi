@@ -50,15 +50,7 @@ try:
 
             driver.fan()
 
-            if water_temp <= 40:
-                driver.relay_on()
-                output_sate = "ON"
-                # GPIO.output(HUMIDIFIER_PIN, True)
-                # # return "On"
-            elif water_temp > 40:
-                driver.relay_off()
-                output_sate = "OFF"
-                # return "Off"
+            driver.relay()
 
 
             sum_temp += sensor_temp
