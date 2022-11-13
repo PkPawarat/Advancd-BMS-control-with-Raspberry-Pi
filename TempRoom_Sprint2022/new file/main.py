@@ -48,7 +48,7 @@ try:
 
             modbus.check_temp()
 
-            driver.fan()
+            driver.Fan()
 
             driver.relay()
 
