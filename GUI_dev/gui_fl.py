@@ -13,12 +13,18 @@
 
 
 from flask import Flask, render_template
+import datetime
 app = Flask(__name__)
 
-@app.route("/<name>")
-def home(name):
-	return render_template("index.html", content = name)
-
+@app.route("/")
+def home():
+		now = datetime.datetime.now()
+		timeString = now.strftime("%Y-%m-%d %H:%M")
+		templateData = {
+			'title' : 'HELLO!',
+			'time': timeString
+			}
+		return render_template('index.html', **templateData)
 if __name__ == "__main__":
 	app.run()
    
